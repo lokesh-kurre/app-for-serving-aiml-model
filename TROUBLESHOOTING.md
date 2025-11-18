@@ -39,6 +39,36 @@ For React Native 0.82+, autolinking should work automatically. Verify by:
 
 If the issue persists, the app includes fallback handling. The save functionality will show a message that the feature is not available, but all other features (camera, capture, gallery view) will work normally.
 
+### Issue: "Task :app:checkDebugDuplicateClasses FAILED"
+
+**Symptom**: Build fails with duplicate class errors when running `npm run android`.
+
+**Cause**: Conflicting dependency versions causing duplicate classes (commonly kotlin-stdlib or libc++_shared.so).
+
+**Solution**:
+
+The build configuration has been updated to handle this automatically. If you still see this error:
+
+```bash
+# Clean everything
+cd android
+.\gradlew.bat clean
+.\gradlew.bat cleanBuildCache
+cd ..
+
+# Remove node modules and reinstall
+rm -rf node_modules
+npm install
+
+# Rebuild
+npm run android
+```
+
+**What was fixed**:
+- Added `packagingOptions` to handle duplicate native libraries
+- Added dependency resolution strategy to force consistent Kotlin versions
+- Configured gradle to pick first occurrence of duplicate files
+
 ### Issue: Camera Permission Denied
 
 **Solution**: 

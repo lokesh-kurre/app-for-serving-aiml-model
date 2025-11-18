@@ -19,3 +19,14 @@ buildscript {
 }
 
 apply plugin: "com.facebook.react.rootproject"
+
+allprojects {
+    configurations.all {
+        resolutionStrategy {
+            // Force specific versions to avoid duplicates
+            force 'org.jetbrains.kotlin:kotlin-stdlib:' + kotlinVersion
+            force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:' + kotlinVersion
+            force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:' + kotlinVersion
+        }
+    }
+}
