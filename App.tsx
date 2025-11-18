@@ -42,6 +42,7 @@ function App() {
   const [showGallery, setShowGallery] = useState(false);
   const [cameraPosition, setCameraPosition] = useState<CameraPosition>('back');
   const [isFocused, setIsFocused] = useState(false);
+  const [focusDistance, setFocusDistance] = useState<number>(0); // Focus distance in cm
   
   const { hasPermission, requestPermission } = useCameraPermission();
   const camera = useRef<Camera>(null);
@@ -76,9 +77,13 @@ function App() {
   useEffect(() => {
     if (device && !showGallery && !showSplash) {
       const interval = setInterval(() => {
-        // Simulated focus check - in production, use actual camera focus callbacks
-        // For fingerprint capture, we assume close-range focus is achieved
-        setIsFocused(Math.random() > 0.5); // Simulate focus state
+        // Simulated focus distance between 10-70cm
+        const simulatedDistance = Math.floor(Math.random() * 60) + 10; // 10-70cm
+        setFocusDistance(simulatedDistance);
+        
+        // Check if in focus range (20-50cm)
+        const inFocusRange = simulatedDistance >= 20 && simulatedDistance <= 50;
+        setIsFocused(inFocusRange);
       }, 1000);
       
       return () => clearInterval(interval);
@@ -123,7 +128,7 @@ function App() {
         setCapturedPhoto(photo);
         // Placeholder for model inference
         setInferenceResult(
-          'Model inference will be integrated here. Photo captured successfully!',
+          `Model inference will be integrated here. Photo captured successfully!\nFocus Distance: ${focusDistance}cm\nFocus Status: ${isFocused ? 'In Range (20-50cm)' : 'Out of Range'}`,
         );
         setShowGallery(true); // Navigate to gallery screen
       } catch (error) {
@@ -146,7 +151,7 @@ function App() {
 
     try {
       const timestamp = new Date().getTime();
-      const fileName = `IMG_${timestamp}.jpg`;
+      const fileName = `IMG_${timestamp}_focus${focusDistance}cm.jpg`;
       const picturesDir = Platform.OS === 'android' 
         ? `${RNFS.ExternalStorageDirectoryPath}/Pictures/AIMLModelApp`
         : `${RNFS.DocumentDirectoryPath}/AIMLModelApp`;
@@ -266,6 +271,15 @@ function App() {
           {/* Circular overlay - centered on screen */}
           <View style={[styles.circularOverlay, { backgroundColor: overlayColor }]}>
             <View style={[styles.circleFrame, { borderColor: circleColor }]} />
+            {/* Focus Distance Display */}
+            <View style={styles.focusDistanceContainer}>
+              <Text style={styles.focusDistanceText}>
+                Focus: {focusDistance}cm
+              </Text>
+              <Text style={[styles.focusStatusText, { color: circleColor }]}>
+                {isFocused ? '✓ In Range (20-50cm)' : '✗ Out of Range'}
+              </Text>
+            </View>
           </View>
 
           {/* Camera Switch Button */}
@@ -332,6 +346,25 @@ const styles = StyleSheet.create({
     borderRadius: 150,
     borderWidth: 6,
     backgroundColor: 'transparent',
+  },
+  focusDistanceContainer: {
+    position: 'absolute',
+    bottom: -80,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  focusDistanceText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  focusStatusText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   switchCameraButton: {
     position: 'absolute',
