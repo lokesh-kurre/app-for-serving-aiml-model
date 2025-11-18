@@ -5,7 +5,7 @@
  * @format
  */
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   StyleSheet,
   View,
@@ -14,23 +14,42 @@ import {
   Image,
   StatusBar,
   ScrollView,
+  useColorScheme,
+  PermissionsAndroid,
+  Platform,
+  Alert,
 } from 'react-native';
 import {
   Camera,
   useCameraDevice,
   useCameraPermission,
   PhotoFile,
+  useCameraFormat,
 } from 'react-native-vision-camera';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import RNFS from 'react-native-fs';
+
+type CameraPosition = 'back' | 'front';
 
 function App() {
   const [capturedPhoto, setCapturedPhoto] = useState<PhotoFile | null>(null);
   const [inferenceResult, setInferenceResult] = useState<string>(
     'No inference result yet',
   );
+  const [showGallery, setShowGallery] = useState(false);
+  const [cameraPosition, setCameraPosition] = useState<CameraPosition>('back');
+  const [isFocused, setIsFocused] = useState(false);
+  
   const { hasPermission, requestPermission } = useCameraPermission();
   const camera = useRef<Camera>(null);
-  const device = useCameraDevice('back');
+  const device = useCameraDevice(cameraPosition);
+  const colorScheme = useColorScheme();
+  
+  // Select camera format with autofocus for close range (20-50cm)
+  const format = useCameraFormat(device, [
+    { photoResolution: { width: 1920, height: 1080 } },
+    { fps: 30 },
+  ]);
 
   useEffect(() => {
     if (!hasPermission) {
@@ -38,23 +57,106 @@ function App() {
     }
   }, [hasPermission, requestPermission]);
 
+  // Simulate focus detection based on distance (20-50cm range)
+  // In a real implementation, you would use camera focus events or depth sensors
+  useEffect(() => {
+    if (device && !showGallery) {
+      const interval = setInterval(() => {
+        // Simulated focus check - in production, use actual camera focus callbacks
+        // For fingerprint capture, we assume close-range focus is achieved
+        setIsFocused(Math.random() > 0.5); // Simulate focus state
+      }, 1000);
+      
+      return () => clearInterval(interval);
+    }
+  }, [device, showGallery]);
+
+  const requestStoragePermission = async (): Promise<boolean> => {
+    if (Platform.OS !== 'android') {
+      return true;
+    }
+    
+    try {
+      if (Platform.Version >= 33) {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
+        );
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+      } else {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+        );
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+      }
+    } catch (err) {
+      console.error('Permission error:', err);
+      return false;
+    }
+  };
+
   const handleCapture = async () => {
     if (camera.current) {
       try {
         const photo = await camera.current.takePhoto({
           flash: 'off',
-          enableShutterSound: true,
+          enableShutterSound: false, // Disabled as requested
         });
         setCapturedPhoto(photo);
         // Placeholder for model inference
         setInferenceResult(
           'Model inference will be integrated here. Photo captured successfully!',
         );
+        setShowGallery(true); // Navigate to gallery screen
       } catch (error) {
         console.error('Failed to capture photo:', error);
-        setInferenceResult('Failed to capture photo');
+        Alert.alert('Error', 'Failed to capture photo');
       }
     }
+  };
+
+  const handleSaveImage = async () => {
+    if (!capturedPhoto) {
+      return;
+    }
+
+    const hasStoragePermission = await requestStoragePermission();
+    if (!hasStoragePermission) {
+      Alert.alert('Permission Denied', 'Storage permission is required to save images');
+      return;
+    }
+
+    try {
+      const timestamp = new Date().getTime();
+      const fileName = `IMG_${timestamp}.jpg`;
+      const picturesDir = Platform.OS === 'android' 
+        ? `${RNFS.ExternalStorageDirectoryPath}/Pictures/AIMLModelApp`
+        : `${RNFS.DocumentDirectoryPath}/AIMLModelApp`;
+      
+      // Create directory if it doesn't exist
+      const dirExists = await RNFS.exists(picturesDir);
+      if (!dirExists) {
+        await RNFS.mkdir(picturesDir);
+      }
+
+      const destPath = `${picturesDir}/${fileName}`;
+      await RNFS.copyFile(capturedPhoto.path, destPath);
+      
+      Alert.alert('Success', `Image saved to Pictures/AIMLModelApp/${fileName}`);
+    } catch (error) {
+      console.error('Failed to save image:', error);
+      Alert.alert('Error', 'Failed to save image');
+    }
+  };
+
+  const handleSwitchCamera = useCallback(() => {
+    // Don't save any state when switching camera
+    setCameraPosition(prev => prev === 'back' ? 'front' : 'back');
+    setIsFocused(false);
+  }, []);
+
+  const handleBackToCamera = () => {
+    setShowGallery(false);
+    setCapturedPhoto(null);
   };
 
   if (!hasPermission) {
@@ -80,62 +182,86 @@ function App() {
     );
   }
 
+  // Gallery Screen
+  if (showGallery && capturedPhoto) {
+    return (
+      <SafeAreaProvider>
+        <StatusBar barStyle="light-content" backgroundColor="#000" />
+        <View style={styles.container}>
+          {/* Gallery View at Upper Portion */}
+          <View style={styles.galleryScreenContainer}>
+            <View style={styles.galleryHeader}>
+              <TouchableOpacity onPress={handleBackToCamera} style={styles.backButton}>
+                <Text style={styles.backButtonText}>← Back</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleSaveImage} style={styles.downloadButton}>
+                <Text style={styles.downloadButtonText}>💾 Save</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.galleryImageContainer}>
+              <Image
+                source={{ uri: `file://${capturedPhoto.path}` }}
+                style={styles.galleryImage}
+                resizeMode="contain"
+              />
+            </View>
+          </View>
+
+          {/* Inference Result Below */}
+          <View style={styles.galleryInferenceContainer}>
+            <Text style={styles.inferenceTitle}>Inference Result</Text>
+            <ScrollView style={styles.inferenceScrollView}>
+              <Text style={styles.inferenceText}>{inferenceResult}</Text>
+            </ScrollView>
+          </View>
+        </View>
+      </SafeAreaProvider>
+    );
+  }
+
+  // Camera Screen
+  const overlayColor = colorScheme === 'dark' ? 'rgba(0, 0, 0, 0.7)' : 'rgba(255, 255, 255, 0.7)';
+  const circleColor = isFocused ? '#00ff00' : '#ff0000'; // Green when focused, red otherwise
+
   return (
     <SafeAreaProvider>
       <StatusBar barStyle="light-content" backgroundColor="#000" />
       <View style={styles.container}>
-        {/* Camera Preview with Circular Frame */}
-        <View style={styles.cameraContainer}>
+        {/* Camera Preview - Full Screen */}
+        <View style={styles.cameraFullScreen}>
           <Camera
             ref={camera}
             style={styles.camera}
             device={device}
-            isActive={true}
+            isActive={!showGallery}
             photo={true}
+            format={format}
             // Fixed camera properties for image specialization
             exposure={0}
             zoom={device.neutralZoom}
             enableZoomGesture={false}
           />
-          {/* Circular overlay */}
-          <View style={styles.circularOverlay}>
-            <View style={styles.circleFrame} />
+          
+          {/* Circular overlay - centered on screen */}
+          <View style={[styles.circularOverlay, { backgroundColor: overlayColor }]}>
+            <View style={[styles.circleFrame, { borderColor: circleColor }]} />
           </View>
+
+          {/* Camera Switch Button */}
+          <TouchableOpacity 
+            style={styles.switchCameraButton}
+            onPress={handleSwitchCamera}>
+            <Text style={styles.switchCameraText}>🔄</Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Capture Button */}
+        {/* Capture Button at Bottom */}
         <View style={styles.captureButtonContainer}>
           <TouchableOpacity
             style={styles.captureButton}
             onPress={handleCapture}>
             <View style={styles.captureButtonInner} />
           </TouchableOpacity>
-        </View>
-
-        {/* Gallery View - Rectangle Box for Captured Images */}
-        <View style={styles.galleryContainer}>
-          <Text style={styles.galleryTitle}>Captured Image</Text>
-          <View style={styles.imageBox}>
-            {capturedPhoto ? (
-              <Image
-                source={{ uri: `file://${capturedPhoto.path}` }}
-                style={styles.capturedImage}
-                resizeMode="cover"
-              />
-            ) : (
-              <Text style={styles.placeholderText}>
-                No image captured yet
-              </Text>
-            )}
-          </View>
-        </View>
-
-        {/* Inference Result Display */}
-        <View style={styles.inferenceContainer}>
-          <Text style={styles.inferenceTitle}>Inference Result</Text>
-          <ScrollView style={styles.inferenceScrollView}>
-            <Text style={styles.inferenceText}>{inferenceResult}</Text>
-          </ScrollView>
         </View>
       </View>
     </SafeAreaProvider>
@@ -167,11 +293,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-  cameraContainer: {
-    height: 300,
-    width: '100%',
+  cameraFullScreen: {
+    flex: 1,
     position: 'relative',
-    backgroundColor: '#000',
   },
   camera: {
     flex: 1,
@@ -180,67 +304,92 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
   },
   circleFrame: {
-    width: 250,
-    height: 250,
-    borderRadius: 125,
-    borderWidth: 3,
-    borderColor: '#fff',
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+    borderWidth: 6,
     backgroundColor: 'transparent',
   },
+  switchCameraButton: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  switchCameraText: {
+    fontSize: 24,
+  },
   captureButtonContainer: {
-    height: 100,
+    height: 120,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+  captureButton: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 5,
+    borderColor: '#ccc',
+  },
+  captureButtonInner: {
+    width: 65,
+    height: 65,
+    borderRadius: 32.5,
+    backgroundColor: '#fff',
+  },
+  galleryScreenContainer: {
+    flex: 2,
+    backgroundColor: '#1a1a1a',
+  },
+  galleryHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 15,
+    backgroundColor: '#000',
+  },
+  backButton: {
+    padding: 10,
+  },
+  backButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  downloadButton: {
+    padding: 10,
+  },
+  downloadButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  galleryImageContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#000',
   },
-  captureButton: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: '#fff',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 4,
-    borderColor: '#ccc',
-  },
-  captureButtonInner: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#fff',
-  },
-  galleryContainer: {
-    height: 180,
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    backgroundColor: '#1a1a1a',
-  },
-  galleryTitle: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  imageBox: {
-    flex: 1,
-    backgroundColor: '#2a2a2a',
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    overflow: 'hidden',
-  },
-  capturedImage: {
+  galleryImage: {
     width: '100%',
     height: '100%',
   },
-  placeholderText: {
-    color: '#888',
-    fontSize: 14,
-  },
-  inferenceContainer: {
+  galleryInferenceContainer: {
     flex: 1,
     paddingHorizontal: 15,
     paddingVertical: 10,
