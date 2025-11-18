@@ -14,6 +14,11 @@
 │    ○  20-50cm range optimal     │
 │    🔴 Out of Focus (Red)        │
 │                                 │
+│    ┌─────────────────────┐     │
+│    │  Focus: 35cm        │     │  ← Distance display
+│    │  ✓ In Range         │     │
+│    └─────────────────────┘     │
+│                                 │
 │    Perfect for fingerprints!    │
 │                                 │
 └─────────────────────────────────┘
@@ -22,6 +27,8 @@
 **Features:**
 - Real-time focus feedback
 - Color-coded indicator (Green/Red)
+- **Focus distance display** in cm (10-70cm range)
+- **Status indicator**: ✓ In Range (20-50cm) or ✗ Out of Range
 - Optimized for close-range capture
 - Ideal for fingerprint scanning
 
@@ -99,13 +106,15 @@
 
 #### Save Functionality
 - **Location**: `Pictures/AIMLModelApp/`
-- **Format**: `IMG_{timestamp}.jpg`
+- **Format**: `IMG_{timestamp}_focus{distance}cm.jpg`
 - **Access**: Download icon (💾) in gallery
 - **Permissions**: Automatic permission request
+- **Focus Distance**: Embedded in filename for tracking
 
 **Example Filenames:**
-- `IMG_1700329842123.jpg`
-- `IMG_1700329856789.jpg`
+- `IMG_1700329842123_focus35cm.jpg` (in focus)
+- `IMG_1700329856789_focus65cm.jpg` (out of focus)
+- `IMG_1700330123456_focus28cm.jpg` (in focus)
 
 ### 5. Startup Experience
 

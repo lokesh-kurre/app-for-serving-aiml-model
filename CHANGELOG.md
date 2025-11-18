@@ -12,6 +12,12 @@ All notable changes to the AI Vision Model Serving App.
   - Red circle when out of focus range
   - Optimized for close-range object capture
   
+- **Focus Distance Display**: Real-time distance measurement
+  - Shows current focus distance in cm (e.g., "Focus: 35cm")
+  - Status indicator: "✓ In Range" or "✗ Out of Range"
+  - Color-coded to match circle (green/red)
+  - Displayed below circular frame during capture
+  
 - **Camera Switching**: Toggle between front and back cameras
   - Switch button at top-right corner (🔄 icon)
   - Default: Back camera
@@ -34,7 +40,9 @@ All notable changes to the AI Vision Model Serving App.
 - **Image Preview**: Full-size image display at top of gallery screen
 - **Download Function**: Save images to device storage
   - Location: Pictures/AIMLModelApp/
-  - Filename format: IMG_{timestamp}.jpg
+  - Filename format: IMG_{timestamp}_focus{distance}cm.jpg
+  - Example: IMG_1700329842123_focus35cm.jpg
+  - Focus distance embedded in filename for easy tracking
   - Download icon (💾) in gallery header
   
 - **Navigation**: Back button to return to camera from gallery
