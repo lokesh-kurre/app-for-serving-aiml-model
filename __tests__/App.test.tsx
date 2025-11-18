@@ -49,6 +49,22 @@ jest.mock('react-native-permissions', () => ({
   check: jest.fn(() => Promise.resolve('granted')),
 }));
 
+// Mock react-native-svg
+jest.mock('react-native-svg', () => {
+  const React = require('react');
+  return {
+    __esModule: true,
+    default: (props: any) => React.createElement('Svg', props, props.children),
+    Svg: (props: any) => React.createElement('Svg', props, props.children),
+    Circle: (props: any) => React.createElement('Circle', props),
+    Path: (props: any) => React.createElement('Path', props),
+    G: (props: any) => React.createElement('G', props, props.children),
+    Defs: (props: any) => React.createElement('Defs', props, props.children),
+    LinearGradient: (props: any) => React.createElement('LinearGradient', props, props.children),
+    Stop: (props: any) => React.createElement('Stop', props),
+  };
+});
+
 test('renders correctly', async () => {
   await ReactTestRenderer.act(() => {
     ReactTestRenderer.create(<App />);

@@ -28,10 +28,13 @@ import {
 } from 'react-native-vision-camera';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import RNFS from 'react-native-fs';
+import { SplashScreen } from './components/SplashScreen';
+import { Logo } from './components/Logo';
 
 type CameraPosition = 'back' | 'front';
 
 function App() {
+  const [showSplash, setShowSplash] = useState(true);
   const [capturedPhoto, setCapturedPhoto] = useState<PhotoFile | null>(null);
   const [inferenceResult, setInferenceResult] = useState<string>(
     'No inference result yet',
@@ -51,16 +54,27 @@ function App() {
     { fps: 30 },
   ]);
 
+  // Handle splash screen finish
+  const handleSplashFinish = useCallback(() => {
+    setShowSplash(false);
+  }, []);
+
+  const handleSwitchCamera = useCallback(() => {
+    // Don't save any state when switching camera
+    setCameraPosition(prev => prev === 'back' ? 'front' : 'back');
+    setIsFocused(false);
+  }, []);
+
   useEffect(() => {
-    if (!hasPermission) {
+    if (!hasPermission && !showSplash) {
       requestPermission();
     }
-  }, [hasPermission, requestPermission]);
+  }, [hasPermission, requestPermission, showSplash]);
 
   // Simulate focus detection based on distance (20-50cm range)
   // In a real implementation, you would use camera focus events or depth sensors
   useEffect(() => {
-    if (device && !showGallery) {
+    if (device && !showGallery && !showSplash) {
       const interval = setInterval(() => {
         // Simulated focus check - in production, use actual camera focus callbacks
         // For fingerprint capture, we assume close-range focus is achieved
@@ -69,7 +83,12 @@ function App() {
       
       return () => clearInterval(interval);
     }
-  }, [device, showGallery]);
+  }, [device, showGallery, showSplash]);
+
+  // Show splash screen first
+  if (showSplash) {
+    return <SplashScreen onFinish={handleSplashFinish} />;
+  }
 
   const requestStoragePermission = async (): Promise<boolean> => {
     if (Platform.OS !== 'android') {
@@ -148,12 +167,6 @@ function App() {
     }
   };
 
-  const handleSwitchCamera = useCallback(() => {
-    // Don't save any state when switching camera
-    setCameraPosition(prev => prev === 'back' ? 'front' : 'back');
-    setIsFocused(false);
-  }, []);
-
   const handleBackToCamera = () => {
     setShowGallery(false);
     setCapturedPhoto(null);
@@ -161,24 +174,32 @@ function App() {
 
   if (!hasPermission) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.permissionText}>
-          Camera permission is required to use this app
-        </Text>
-        <TouchableOpacity
-          style={styles.permissionButton}
-          onPress={requestPermission}>
-          <Text style={styles.permissionButtonText}>Grant Permission</Text>
-        </TouchableOpacity>
-      </View>
+      <SafeAreaProvider>
+        <StatusBar barStyle="light-content" backgroundColor="#000" />
+        <View style={styles.container}>
+          <Logo size={120} />
+          <Text style={styles.permissionText}>
+            Camera permission is required to use this app
+          </Text>
+          <TouchableOpacity
+            style={styles.permissionButton}
+            onPress={requestPermission}>
+            <Text style={styles.permissionButtonText}>Grant Permission</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaProvider>
     );
   }
 
   if (!device) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.permissionText}>No camera device found</Text>
-      </View>
+      <SafeAreaProvider>
+        <StatusBar barStyle="light-content" backgroundColor="#000" />
+        <View style={styles.container}>
+          <Logo size={100} />
+          <Text style={styles.permissionText}>No camera device found</Text>
+        </View>
+      </SafeAreaProvider>
     );
   }
 
@@ -277,7 +298,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     textAlign: 'center',
-    marginTop: 100,
+    marginTop: 40,
     paddingHorizontal: 20,
   },
   permissionButton: {

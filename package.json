@@ -16,6 +16,8 @@
     "react-native-fs": "^2.20.0",
     "react-native-permissions": "^5.4.4",
     "react-native-safe-area-context": "^5.5.2",
+    "react-native-splash-screen": "^3.3.0",
+    "react-native-svg": "^15.15.0",
     "react-native-vision-camera": "^4.7.3"
   },
   "devDependencies": {
