@@ -78,19 +78,29 @@ npm start
 
 ### 5. Run on Android
 
-In a new terminal:
+**Important**: After installing dependencies, you must rebuild the native modules:
 
 ```bash
+# Clean and rebuild (required for native modules)
+cd android
+.\gradlew.bat clean
+cd ..
+
+# Run the app (this rebuilds native code)
 npm run android
 ```
 
-Or using the gradlew script directly:
+Alternative manual build:
 
 ```bash
 cd android
 .\gradlew.bat clean
 .\gradlew.bat assembleDebug
+cd ..
+npm run android
 ```
+
+**Troubleshooting**: If you get native module errors (like `rnfsfiletyperegular`), see `TROUBLESHOOTING.md`.
 
 ## Camera Properties
 

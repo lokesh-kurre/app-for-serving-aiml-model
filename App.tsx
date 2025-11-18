@@ -27,9 +27,16 @@ import {
   useCameraFormat,
 } from 'react-native-vision-camera';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import RNFS from 'react-native-fs';
 import { SplashScreen } from './components/SplashScreen';
 import { Logo } from './components/Logo';
+
+// Lazy load react-native-fs to avoid initialization errors
+let RNFS: any = null;
+try {
+  RNFS = require('react-native-fs');
+} catch (error) {
+  console.warn('react-native-fs not available:', error);
+}
 
 type CameraPosition = 'back' | 'front';
 
@@ -143,6 +150,15 @@ function App() {
       return;
     }
 
+    // Check if RNFS is available
+    if (!RNFS) {
+      Alert.alert(
+        'Feature Not Available',
+        'File system module not initialized. The image is captured but saving to gallery is not available in this build.',
+      );
+      return;
+    }
+
     const hasStoragePermission = await requestStoragePermission();
     if (!hasStoragePermission) {
       Alert.alert('Permission Denied', 'Storage permission is required to save images');
@@ -168,7 +184,7 @@ function App() {
       Alert.alert('Success', `Image saved to Pictures/AIMLModelApp/${fileName}`);
     } catch (error) {
       console.error('Failed to save image:', error);
-      Alert.alert('Error', 'Failed to save image');
+      Alert.alert('Error', 'Failed to save image: ' + (error as Error).message);
     }
   };
 
