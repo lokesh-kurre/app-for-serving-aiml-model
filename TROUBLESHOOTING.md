@@ -39,6 +39,33 @@ For React Native 0.82+, autolinking should work automatically. Verify by:
 
 If the issue persists, the app includes fallback handling. The save functionality will show a message that the feature is not available, but all other features (camera, capture, gallery view) will work normally.
 
+### Issue: "Can't find ViewManager 'RNSVGLinearGradient'"
+
+**Symptom**: Build completes but app crashes with ViewManager not found error for SVG components.
+
+**Cause**: `react-native-svg` native module not properly linked or causing conflicts.
+
+**Solution**:
+
+The app has been updated to use native React Native components instead of SVG. If you installed the old version:
+
+```bash
+# Remove node modules
+rm -rf node_modules
+npm install
+
+# Clean and rebuild
+cd android
+.\gradlew.bat clean
+cd ..
+npm run android
+```
+
+**What was fixed**:
+- Replaced SVG logo with React Native View-based logo (no native dependencies)
+- Removed `react-native-svg` dependency
+- Logo now uses emoji and styled Views for visual design
+
 ### Issue: "Task :app:checkDebugDuplicateClasses FAILED"
 
 **Symptom**: Build fails with duplicate class errors when running `npm run android`.
@@ -68,6 +95,7 @@ npm run android
 - Added `packagingOptions` to handle duplicate native libraries
 - Added dependency resolution strategy to force consistent Kotlin versions
 - Configured gradle to pick first occurrence of duplicate files
+- Removed problematic `react-native-svg` dependency
 
 ### Issue: Camera Permission Denied
 
