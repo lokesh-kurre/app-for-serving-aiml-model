@@ -28,5 +28,11 @@ allprojects {
             force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:' + kotlinVersion
             force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:' + kotlinVersion
         }
+        
+        // Exclude old support libraries to avoid conflicts with AndroidX
+        exclude group: 'com.android.support', module: 'support-compat'
+        exclude group: 'com.android.support', module: 'support-core-utils'
+        exclude group: 'com.android.support', module: 'support-core-ui'
+        exclude group: 'com.android.support', module: 'support-fragment'
     }
 }

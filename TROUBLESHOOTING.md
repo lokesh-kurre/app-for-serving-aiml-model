@@ -66,7 +66,36 @@ npm run android
 - Removed `react-native-svg` dependency
 - Logo now uses emoji and styled Views for visual design
 
-### Issue: "Task :app:checkDebugDuplicateClasses FAILED"
+### Issue: "Duplicate class android.support.v4..." (AndroidX Conflict)
+
+**Symptom**: Build fails with errors like:
+```
+Duplicate class android.support.v4.app.INotificationSideChannel found in modules 
+core-1.13.1.aar -> core-1.13.1-runtime (androidx.core:core:1.13.1) and 
+support-compat-26.1.0.aar -> support-compat-26.1.0-runtime (com.android.support:support-compat:26.1.0)
+```
+
+**Cause**: Mixing AndroidX and old Android Support Library dependencies.
+
+**Solution**:
+
+The project is configured to use AndroidX with Jetifier enabled. Clean and rebuild:
+
+```bash
+cd android
+.\gradlew.bat clean
+cd ..
+rm -rf node_modules
+npm install
+npm run android
+```
+
+**What was fixed**:
+- Enabled `android.enableJetifier=true` to auto-convert old support libraries
+- Added exclusions for old support library modules
+- Forced AndroidX usage across all dependencies
+
+### Issue: "Task :app:checkDebugDuplicateClasses FAILED" (General)
 
 **Symptom**: Build fails with duplicate class errors when running `npm run android`.
 
@@ -80,7 +109,6 @@ The build configuration has been updated to handle this automatically. If you st
 # Clean everything
 cd android
 .\gradlew.bat clean
-.\gradlew.bat cleanBuildCache
 cd ..
 
 # Remove node modules and reinstall
@@ -90,6 +118,8 @@ npm install
 # Rebuild
 npm run android
 ```
+
+**Note**: The `cleanBuildCache` task is not available in all Gradle versions. Use `clean` instead.
 
 **What was fixed**:
 - Added `packagingOptions` to handle duplicate native libraries
