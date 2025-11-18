@@ -262,8 +262,10 @@ function App() {
   }
 
   // Camera Screen
-  const overlayColor = colorScheme === 'dark' ? 'rgba(0, 0, 0, 0.7)' : 'rgba(255, 255, 255, 0.7)';
-  const circleColor = isFocused ? '#00ff00' : '#ff0000'; // Green when focused, red otherwise
+  // Opaque overlay - solid black or white based on theme
+  const overlayColor = colorScheme === 'dark' ? '#000000' : '#FFFFFF';
+  // Circle is green ONLY when both in focus AND within range (20-50cm)
+  const circleColor = isFocused ? '#00ff00' : '#ff0000';
 
   return (
     <SafeAreaProvider>
@@ -284,34 +286,32 @@ function App() {
             enableZoomGesture={false}
           />
           
-          {/* Circular overlay - centered on screen */}
+          {/* Circular overlay - centered on screen with opaque background */}
           <View style={[styles.circularOverlay, { backgroundColor: overlayColor }]}>
             <View style={[styles.circleFrame, { borderColor: circleColor }]} />
-            {/* Focus Distance Display */}
+            {/* Focal Distance Display */}
             <View style={styles.focusDistanceContainer}>
               <Text style={styles.focusDistanceText}>
-                Focus: {focusDistance}cm
-              </Text>
-              <Text style={[styles.focusStatusText, { color: circleColor }]}>
-                {isFocused ? '✓ In Range (20-50cm)' : '✗ Out of Range'}
+                Focal Distance: {focusDistance}cm
               </Text>
             </View>
           </View>
-
-          {/* Camera Switch Button */}
-          <TouchableOpacity 
-            style={styles.switchCameraButton}
-            onPress={handleSwitchCamera}>
-            <Text style={styles.switchCameraText}>🔄</Text>
-          </TouchableOpacity>
         </View>
 
-        {/* Capture Button at Bottom */}
+        {/* Capture and Switch Camera Buttons at Bottom */}
         <View style={styles.captureButtonContainer}>
+          {/* Capture Button - Center */}
           <TouchableOpacity
             style={styles.captureButton}
             onPress={handleCapture}>
             <View style={styles.captureButtonInner} />
+          </TouchableOpacity>
+          
+          {/* Camera Switch Button - Beside Capture Button */}
+          <TouchableOpacity 
+            style={styles.switchCameraButton}
+            onPress={handleSwitchCamera}>
+            <Text style={styles.switchCameraText}>🔄</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -382,22 +382,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
-  switchCameraButton: {
-    position: 'absolute',
-    top: 50,
-    right: 20,
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  switchCameraText: {
-    fontSize: 24,
-  },
   captureButtonContainer: {
     height: 120,
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'transparent',
@@ -421,6 +408,20 @@ const styles = StyleSheet.create({
     height: 65,
     borderRadius: 32.5,
     backgroundColor: '#fff',
+  },
+  switchCameraButton: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 30,
+    borderWidth: 3,
+    borderColor: '#ccc',
+  },
+  switchCameraText: {
+    fontSize: 28,
   },
   galleryScreenContainer: {
     flex: 2,
