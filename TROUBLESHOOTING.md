@@ -66,6 +66,33 @@ npm run android
 - Removed `react-native-svg` dependency
 - Logo now uses emoji and styled Views for visual design
 
+### Issue: "Java heap space" during build (Jetifier)
+
+**Symptom**: Build fails with:
+```
+Execution failed for JetifyTransform: react-android-0.82.1-debug.aar
+> Java heap space
+```
+
+**Cause**: Jetifier running out of memory transforming large AAR files.
+
+**Solution**:
+
+React Native 0.82+ uses AndroidX natively, so Jetifier is disabled by default. The heap size has been increased for large builds.
+
+If you still encounter heap errors:
+
+```bash
+# Increase heap size further (edit android/gradle.properties)
+org.gradle.jvmargs=-Xmx6144m -XX:MaxMetaspaceSize=1536m
+
+# Then clean and rebuild
+cd android
+.\gradlew.bat clean
+cd ..
+npm run android
+```
+
 ### Issue: "Duplicate class android.support.v4..." (AndroidX Conflict)
 
 **Symptom**: Build fails with errors like:
@@ -79,7 +106,7 @@ support-compat-26.1.0.aar -> support-compat-26.1.0-runtime (com.android.support:
 
 **Solution**:
 
-The project is configured to use AndroidX with Jetifier enabled. Clean and rebuild:
+The project is configured to use AndroidX. Jetifier is disabled since React Native 0.82+ uses AndroidX natively. Clean and rebuild:
 
 ```bash
 cd android
@@ -91,9 +118,15 @@ npm run android
 ```
 
 **What was fixed**:
-- Enabled `android.enableJetifier=true` to auto-convert old support libraries
+- Disabled Jetifier (React Native 0.82+ uses AndroidX natively)
+- Increased Gradle heap size to 4GB for large builds
 - Added exclusions for old support library modules
 - Forced AndroidX usage across all dependencies
+
+**Note**: If a specific dependency requires old support libraries, you can re-enable Jetifier in `android/gradle.properties`:
+```properties
+android.enableJetifier=true
+```
 
 ### Issue: "Task :app:checkDebugDuplicateClasses FAILED" (General)
 
