@@ -230,31 +230,34 @@ function App() {
       <SafeAreaProvider>
         <StatusBar barStyle="light-content" backgroundColor="#000" />
         <View style={styles.container}>
-          {/* Gallery View at Upper Portion */}
-          <View style={styles.galleryScreenContainer}>
-            <View style={styles.galleryHeader}>
-              <TouchableOpacity onPress={handleBackToCamera} style={styles.backButton}>
-                <Text style={styles.backButtonText}>← Back</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={handleSaveImage} style={styles.downloadButton}>
-                <Text style={styles.downloadButtonText}>💾 Save</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.galleryImageContainer}>
+          {/* Header with Back and Save buttons */}
+          <View style={styles.galleryHeader}>
+            <TouchableOpacity onPress={handleBackToCamera} style={styles.backButton}>
+              <Text style={styles.backButtonText}>← Back</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleSaveImage} style={styles.downloadButton}>
+              <Text style={styles.downloadButtonText}>💾 Save</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Side-by-Side Layout: Gallery Preview and Inference Result on Right */}
+          <View style={styles.galleryContentRow}>
+            {/* Gallery Preview on Right Side */}
+            <View style={styles.galleryImageContainerRight}>
               <Image
                 source={{ uri: `file://${capturedPhoto.path}` }}
                 style={styles.galleryImage}
                 resizeMode="contain"
               />
             </View>
-          </View>
 
-          {/* Inference Result Below */}
-          <View style={styles.galleryInferenceContainer}>
-            <Text style={styles.inferenceTitle}>Inference Result</Text>
-            <ScrollView style={styles.inferenceScrollView}>
-              <Text style={styles.inferenceText}>{inferenceResult}</Text>
-            </ScrollView>
+            {/* Inference Result on Right Side Below Preview */}
+            <View style={styles.galleryInferenceContainerRight}>
+              <Text style={styles.inferenceTitle}>Inference Result</Text>
+              <ScrollView style={styles.inferenceScrollView}>
+                <Text style={styles.inferenceText}>{inferenceResult}</Text>
+              </ScrollView>
+            </View>
           </View>
         </View>
       </SafeAreaProvider>
@@ -423,10 +426,6 @@ const styles = StyleSheet.create({
   switchCameraText: {
     fontSize: 28,
   },
-  galleryScreenContainer: {
-    flex: 2,
-    backgroundColor: '#1a1a1a',
-  },
   galleryHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -450,17 +449,23 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-  galleryImageContainer: {
+  galleryContentRow: {
+    flex: 1,
+    flexDirection: 'row',
+    backgroundColor: '#000',
+  },
+  galleryImageContainerRight: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#000',
+    padding: 10,
   },
   galleryImage: {
     width: '100%',
     height: '100%',
   },
-  galleryInferenceContainer: {
+  galleryInferenceContainerRight: {
     flex: 1,
     paddingHorizontal: 15,
     paddingVertical: 10,
