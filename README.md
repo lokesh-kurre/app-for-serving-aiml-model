@@ -1,5 +1,7 @@
 # AI Vision - Model Serving Platform
 
+> **📝 Documentation Notice**: This README documents the features and code available in the `copilot/build-camera-preview-functionality` branch, which contains the complete application. For the actual code, please checkout that branch.
+
 A professional AI/ML model serving application built with React Native, featuring advanced camera controls and real-time ML inference with TensorFlow Lite. Currently focused on Android platform with support from Android 9 (API 28) onwards.
 
 ## Features
@@ -357,7 +359,10 @@ React Component (Display in UI)
   - Encodes as Base64 string
   - Returns `{base64: string, width: number, height: number, channels: number}`
 
-- `inferFromPath(path: string)` *(In development - currently being called but implementation incomplete)*
+- `inferFromPath(path: string)` 
+  
+  > ⚠️ **Note**: This function is called in the code but the full implementation is incomplete. Only `decodeToBase64` is currently implemented in the shown code. The complete implementation should decode the image and call JSI inference to return results.
+  
   - Intended to decode image and call JSI inference
   - Will return inference results array when fully implemented
 
