@@ -357,9 +357,9 @@ React Component (Display in UI)
   - Encodes as Base64 string
   - Returns `{base64: string, width: number, height: number, channels: number}`
 
-- `inferFromPath(path: string)` (Expected but not implemented in shown code)
-  - Would decode image and call JSI inference
-  - Returns inference results array
+- `inferFromPath(path: string)` *(In development - currently being called but implementation incomplete)*
+  - Intended to decode image and call JSI inference
+  - Will return inference results array when fully implemented
 
 **Integration**:
 - React Native module via `ReactContextBaseJavaModule`
@@ -611,7 +611,7 @@ The complete application (in the `copilot/build-camera-preview-functionality` br
 - **CHANGELOG.md**: Version history, feature additions, and technical improvements
 - **IMPLEMENTATION_SUMMARY.md**: Implementation checklist, deliverables, and metrics
 
-**Note**: These additional documentation files are available in the main application branch.
+**Note**: These additional documentation files are available in the `copilot/build-camera-preview-functionality` branch which contains the complete application code documented above.
 
 ## Contributing
 
@@ -655,5 +655,5 @@ For issues, questions, and support:
 ---
 
 **AI Vision** - Professional AI/ML Model Serving Platform  
-Version 1.1.0 | Built with React Native 0.82 | Optimized for Android 9+  
+Version 0.0.1 | Built with React Native 0.82 | Optimized for Android 9+  
 © 2025 | [GitHub Repository](https://github.com/lokesh-kurre/app-for-serving-aiml-model)
