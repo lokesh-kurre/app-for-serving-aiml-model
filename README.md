@@ -601,7 +601,7 @@ To add iOS support:
 
 ## Additional Documentation
 
-For more detailed information, see the comprehensive documentation files:
+The complete application (in the `copilot/build-camera-preview-functionality` branch) includes comprehensive documentation files:
 
 - **FEATURES.md**: Complete feature walkthrough with ASCII art diagrams and UI flows
 - **ARCHITECTURE.md**: Technical architecture, component details, and design patterns
@@ -610,6 +610,8 @@ For more detailed information, see the comprehensive documentation files:
 - **TROUBLESHOOTING.md**: Extensive troubleshooting guide for common issues
 - **CHANGELOG.md**: Version history, feature additions, and technical improvements
 - **IMPLEMENTATION_SUMMARY.md**: Implementation checklist, deliverables, and metrics
+
+**Note**: These additional documentation files are available in the main application branch.
 
 ## Contributing
 
